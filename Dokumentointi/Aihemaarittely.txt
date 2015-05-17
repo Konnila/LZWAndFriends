@@ -1,0 +1,22 @@
+Aiheena on datan pakkaus.
+
+Ideana on toteuttaa Huffman koodaus sekä LZW tekstitiedostoille.
+Huffman vaatii toteutukseensa ainakin listan, sekä oman implementaation 
+prioriteettijonosta (Minimikeon). LZW enkoodaus vaatii ainakin 
+key-value listan implementaation.
+
+Datan pakkaus on sinänsä mielenkiintoinen aihe. Valitsin sen osittain myös 
+sen takia, että se kuulostaa suhteellisen helpolta, eikä tarvitse mitään
+kovinkaan monimutkaisia tietorakenteita toteuttaa. Mutta niistäkin saa 
+monimutkaisempia kun niitä valjastaa pakkauksen optimoinnin tarpeisiin.
+Laajennettavaa siis on, jos aikaa jää.
+
+Lopullinen ohjelma saa syötteekseen viitteen tekstitiedostoon, ja tiedon siitä
+onko kyseessä enkoodaus- vai dekoodaus-operaatio. Tuloksena on joko dekoodattu
+tai enkoodattu tekstitiedosto, riippuen syötteestä.
+
+Aikavaativuustavoitteena on: Huffman enkoodaukselle n log n
+			     LZW enkoodaukselle n.
+
+
+
