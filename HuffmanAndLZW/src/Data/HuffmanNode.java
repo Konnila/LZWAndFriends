@@ -13,11 +13,22 @@ public class HuffmanNode implements Comparable<HuffmanNode>{
         this.frequency = frequency;
         this.right = right;
         this.left = left;
-        this.isLeaf = isLeaf;
     }
     
     public int getFrequency() {
         return frequency;
+    }
+    
+    public int getCharacter() {
+        return c;
+    }
+    
+    public HuffmanNode getLeftChild() {
+        return left;
+    }
+    
+    public HuffmanNode getRightChild() {
+        return right;
     }
     
     public boolean isLeafNode() {

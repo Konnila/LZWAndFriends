@@ -16,6 +16,7 @@ public class HuffmanEngine implements ICompression {
     public void decode(File file) {
         try {
             int[] freqTable = buildFrequencyTable(file);
+            String[] prefixTable;
             pqueue = new PriorityQueue<>();
             
              //insert orphans
@@ -32,8 +33,19 @@ public class HuffmanEngine implements ICompression {
                  
                  pqueue.offer(new HuffmanNode('\u0000', first.getFrequency() + second.getFrequency(), first, second));
              }
-             //now the tree is in the first and only node of pqueue
              
+             //now the tree is in the first and only node of pqueue
+             //next populate the prefixtable
+             prefixTable = populatePrefixTable(new String[256], pqueue.poll(), "");
+             
+             //remove, just for test
+             System.out.println("" + prefixTable.length);
+             for(int i = 0; i < 256; i++) {
+                 if(prefixTable[i] != null && !prefixTable[i].isEmpty()) {
+                     System.out.println("char: " + 
+                             (char)i + "\n" + "PREFIX: " + prefixTable[i] + "\n");
+                 }
+             }
         } 
         catch (IOException ex) {
             Logger.getLogger(HuffmanEngine.class.getName()).log(Level.SEVERE, null, ex);
@@ -59,14 +71,19 @@ public class HuffmanEngine implements ICompression {
         return charFreqs;
     }
     
-    //just a helper for now - recursive
-    public void printCodes(HuffmanNode node) {
+    protected String[] populatePrefixTable(String[] prefixTable, HuffmanNode node, String prefix) {
         if(node.isLeafNode()) {
-            //do stuff
+            prefixTable[(int)node.getCharacter()] = prefix + "FREQ" + node.getFrequency();
+            return prefixTable;
         }
         else {
-            //proceed recursively
+            //proceed recursively since this is not a leaf
+            populatePrefixTable(prefixTable, node.getLeftChild(), prefix + "0");
+            populatePrefixTable(prefixTable, node.getRightChild(), prefix + "1");
         }
+        
+        //should never get here
+        return prefixTable;
     }
 
     @Override
