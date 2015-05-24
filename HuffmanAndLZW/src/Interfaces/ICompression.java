@@ -7,5 +7,5 @@ import java.io.IOException;
 public interface ICompression {
     void decode(File file);
     int[] buildFrequencyTable(File file) throws FileNotFoundException, IOException;
-    void writeIntoFile(String filename);
+    void writeIntoFile(String filename, String[] prefixtable, File file);
 }

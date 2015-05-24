@@ -2,8 +2,10 @@ import Data.HuffmanNode;
 import Interfaces.ICompression;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.BitSet;
 import java.util.PriorityQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +48,8 @@ public class HuffmanEngine implements ICompression {
                              (char)i + "\n" + "PREFIX: " + prefixTable[i] + "\n");
                  }
              }
+             
+             writeIntoFile("testCompressed", prefixTable, file);
         } 
         catch (IOException ex) {
             Logger.getLogger(HuffmanEngine.class.getName()).log(Level.SEVERE, null, ex);
@@ -59,21 +63,29 @@ public class HuffmanEngine implements ICompression {
         FileReader reader = new FileReader(file);
         
         int[] charFreqs = new int[256];
-            while (true) {
-                int c = reader.read();
-                
-                //End of file
-                if(c < 0)
-                    break;
-                
-                charFreqs[c]++;
+        //remove
+        int amount = 0;
+        
+        while (true) {
+            int c = reader.read();
+ 
+            //End of file
+            if(c < 0) {
+                System.out.println("chars: " + amount);
+                break;
             }
+            amount++;
+            charFreqs[c]++;
+        }
+        
+        reader.close();
+        
         return charFreqs;
     }
     
     protected String[] populatePrefixTable(String[] prefixTable, HuffmanNode node, String prefix) {
         if(node.isLeafNode()) {
-            prefixTable[(int)node.getCharacter()] = prefix + "FREQ" + node.getFrequency();
+            prefixTable[(int)node.getCharacter()] = prefix;
             return prefixTable;
         }
         else {
@@ -87,7 +99,64 @@ public class HuffmanEngine implements ICompression {
     }
 
     @Override
-    public void writeIntoFile(String filename) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void writeIntoFile(String filename, String[] prefixtable, File file) {
+        try {
+            FileReader reader = new FileReader(file);
+            File compressedFile = new File("../misc/" + filename);
+            FileOutputStream fileOutputStream = new FileOutputStream(compressedFile);
+            BitSet bs = new BitSet();
+            int bitSetIndex = 0;
+            
+            while(true) {
+                int c = reader.read();
+          
+                if(c < 0) {
+                    break;
+                }
+                
+                String prefix = prefixtable[c];
+                for(int i = 0; i < prefix.length(); i++) {
+                    if (prefix.charAt(i) == '0') {
+                        bs.set(bitSetIndex, false);
+                        bitSetIndex++;
+                    }
+                    else {
+                        bs.set(bitSetIndex, true);
+                        bitSetIndex++;
+                    }
+                }
+            }
+            
+            int remainder = bitSetIndex % 8;
+                
+            if(remainder != 0) {
+                // add trailing bits if needed
+                for(int i = 0; i < 8 - remainder; i++) {
+                    bs.set(bitSetIndex, false);
+                }
+                bs.set(bitSetIndex);
+            }
+                
+            byte[] bytes = bs.toByteArray();
+            fileOutputStream.write(bytes);
+            
+            fileOutputStream.close();
+            reader.close();
+            
+            
+            long percentage =  (file.length() - compressedFile.length());
+            System.out.println("percent: " + percentage);
+            double comparingPercentage = (percentage*100.0 /  file.length());
+            System.out.println("comparingPercent: " + comparingPercentage);
+            
+            System.out.println("Original file length (bytes): " + file.length());
+            System.out.println("Compressed file length (bytes): " + compressedFile.length());
+            System.out.println("Compressed file is " + (int)comparingPercentage + "% smaller than original");
+            
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(HuffmanEngine.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(HuffmanEngine.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }   
 }
