@@ -30,10 +30,13 @@ public class Main {
                 HuffmanEngine engine = new HuffmanEngine();
                 
                 engine.decode(file);
-                
                 break;
+                
             case "-e":
                 break;
+                
+            default:
+                throw new Error("Unknown argument");
         }
         
     }
