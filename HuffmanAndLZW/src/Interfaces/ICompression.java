@@ -5,5 +5,6 @@ import java.io.IOException;
 
 public interface ICompression {
     void decode(File file);
+    void encode(File file);
     void writeIntoFile(String filename, String[] prefixtable, File file);
 }

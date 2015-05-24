@@ -11,6 +11,7 @@ public class Main {
             throw new FileNotFoundException("Specified file does not exist");
         }
         
+        //remember to fix as more handles come
         if(args.length > 1) {
             throw new Exception("Too many arguments");
         }
@@ -23,16 +24,13 @@ public class Main {
         }
         
         switch (argument) {
-            case "-d": 
-                System.out.println("File found and switch valid");
-                System.out.println("Filename: " + file.getName());
-                
+            case "-e": 
                 HuffmanEngine engine = new HuffmanEngine();
-                
                 engine.decode(file);
+                
                 break;
                 
-            case "-e":
+            case "-d":
                 break;
                 
             default:

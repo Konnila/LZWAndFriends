@@ -15,7 +15,7 @@ public class HuffmanEngine implements ICompression {
     private PriorityQueue<HuffmanNode> pqueue;
     
     @Override
-    public void decode(File file) {
+    public void encode(File file) {
         try {
             int[] freqTable = buildFrequencyTable(file);
             String[] prefixTable;
