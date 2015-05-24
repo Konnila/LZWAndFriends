@@ -80,7 +80,8 @@ public class HuffmanEngine implements ICompression {
             populatePrefixTable(prefixTable, node.getRightChild(), prefix + "1");
         }
         
-        //should never get here
+        //should never get here, but this java(1.7.0_01) or netbeans(8.0.2) version handles recursion poorly
+        //hence the ugly redundant return 
         return prefixTable;
     }
 
@@ -145,4 +146,9 @@ public class HuffmanEngine implements ICompression {
             Logger.getLogger(HuffmanEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
     }   
+
+    @Override
+    public void decode(File file) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
