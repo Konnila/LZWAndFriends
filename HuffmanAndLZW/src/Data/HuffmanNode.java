@@ -3,7 +3,6 @@ package Data;
 public class HuffmanNode implements Comparable<HuffmanNode>{
     char c;
     int frequency;
-    boolean isLeaf;
     
     //children
     HuffmanNode left,right;

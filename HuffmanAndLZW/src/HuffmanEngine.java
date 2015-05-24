@@ -40,15 +40,6 @@ public class HuffmanEngine implements ICompression {
              //next populate the prefixtable
              prefixTable = populatePrefixTable(new String[256], pqueue.poll(), "");
              
-             //remove, just for test
-             System.out.println("" + prefixTable.length);
-             for(int i = 0; i < 256; i++) {
-                 if(prefixTable[i] != null && !prefixTable[i].isEmpty()) {
-                     System.out.println("char: " + 
-                             (char)i + "\n" + "PREFIX: " + prefixTable[i] + "\n");
-                 }
-             }
-             
              writeIntoFile("testCompressed", prefixTable, file);
         } 
         catch (IOException ex) {
@@ -58,27 +49,22 @@ public class HuffmanEngine implements ICompression {
         System.exit(0);
     }
     
-    @Override
-    public int[] buildFrequencyTable(File file) throws FileNotFoundException, IOException {
-        FileReader reader = new FileReader(file);
-        
-        int[] charFreqs = new int[256];
-        //remove
-        int amount = 0;
-        
-        while (true) {
-            int c = reader.read();
- 
-            //End of file
-            if(c < 0) {
-                System.out.println("chars: " + amount);
-                break;
+    protected int[] buildFrequencyTable(File file) throws FileNotFoundException, IOException {
+        int[] charFreqs;
+        try (FileReader reader = new FileReader(file)) {
+            charFreqs = new int[256];
+            
+            while (true) {
+                int c = reader.read();
+                
+                //End of file
+                if(c < 0) {
+                    break;
+                }
+                
+                charFreqs[c]++;
             }
-            amount++;
-            charFreqs[c]++;
         }
-        
-        reader.close();
         
         return charFreqs;
     }
@@ -99,51 +85,51 @@ public class HuffmanEngine implements ICompression {
     }
 
     @Override
-    public void writeIntoFile(String filename, String[] prefixtable, File file) {
+    public void writeIntoFile(String filename, String[] prefixTable, File file) {
         try {
-            FileReader reader = new FileReader(file);
-            File compressedFile = new File("../misc/" + filename);
-            FileOutputStream fileOutputStream = new FileOutputStream(compressedFile);
-            BitSet bs = new BitSet();
-            int bitSetIndex = 0;
-            
-            while(true) {
-                int c = reader.read();
-          
-                if(c < 0) {
-                    break;
-                }
-                
-                String prefix = prefixtable[c];
-                for(int i = 0; i < prefix.length(); i++) {
-                    if (prefix.charAt(i) == '0') {
-                        bs.set(bitSetIndex, false);
-                        bitSetIndex++;
+            File compressedFile;
+            try (FileReader reader = new FileReader(file)) {
+                compressedFile = new File("../misc/" + filename);
+                try (FileOutputStream fileOutputStream = new FileOutputStream(compressedFile)) {
+                    BitSet bs = new BitSet();
+                    int bitSetIndex = 0;
+                    
+                    while(true) {
+                        int c = reader.read();
+                        
+                        if(c < 0) {
+                            break;
+                        }
+                        
+                        String prefix = prefixTable[c];
+                        for(int i = 0; i < prefix.length(); i++) {
+                            if (prefix.charAt(i) == '0') {
+                                bs.set(bitSetIndex, false);
+                                bitSetIndex++;
+                            }
+                            else {
+                                bs.set(bitSetIndex, true);
+                                bitSetIndex++;
+                            }
+                        }
                     }
-                    else {
-                        bs.set(bitSetIndex, true);
-                        bitSetIndex++;
+                    
+                    int remainder = bitSetIndex % 8;
+                    if(remainder != 0) {
+                        // add trailing bits if needed
+                        for(int i = 0; i < 8 - remainder; i++) {
+                            bs.set(bitSetIndex, false);
+                        }
+                        
+                        bs.set(bitSetIndex);
                     }
+                    
+                    byte[] bytes = bs.toByteArray();
+                    fileOutputStream.write(bytes);
                 }
             }
             
-            int remainder = bitSetIndex % 8;
-                
-            if(remainder != 0) {
-                // add trailing bits if needed
-                for(int i = 0; i < 8 - remainder; i++) {
-                    bs.set(bitSetIndex, false);
-                }
-                bs.set(bitSetIndex);
-            }
-                
-            byte[] bytes = bs.toByteArray();
-            fileOutputStream.write(bytes);
-            
-            fileOutputStream.close();
-            reader.close();
-            
-            
+            //remove these, just for testing
             long percentage =  (file.length() - compressedFile.length());
             System.out.println("percent: " + percentage);
             double comparingPercentage = (percentage*100.0 /  file.length());
