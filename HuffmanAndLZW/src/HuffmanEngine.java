@@ -131,10 +131,8 @@ public class HuffmanEngine implements ICompression {
             }
             
             //remove these, just for testing
-            long percentage =  (file.length() - compressedFile.length());
-            System.out.println("percent: " + percentage);
+            long percentage = (file.length() - compressedFile.length());
             double comparingPercentage = (percentage*100.0 /  file.length());
-            System.out.println("comparingPercent: " + comparingPercentage);
             
             System.out.println("Original file length (bytes): " + file.length());
             System.out.println("Compressed file length (bytes): " + compressedFile.length());
