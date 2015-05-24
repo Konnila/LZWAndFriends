@@ -55,7 +55,7 @@ public class HuffmanEngineTests {
     public void testEncode_SunnyScenaario() {
         try {
             engine.encode(writeIntoFile(testFileName, testInput));
-        } catch (IOException ex) {
+        } catch (IOException e) {
             Assert.fail();
         }
     }
