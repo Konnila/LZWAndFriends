@@ -26,7 +26,7 @@ public class Main {
         switch (argument) {
             case "-e": 
                 HuffmanEngine engine = new HuffmanEngine();
-                engine.decode(file);
+                engine.encode(file);
                 
                 break;
                 
