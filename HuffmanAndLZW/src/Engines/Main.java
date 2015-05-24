@@ -1,3 +1,5 @@
+package Engines;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -5,7 +7,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         //check for file
-        File file = new File("../misc/test.txt");
+        File file = new File("../misc/lirum.txt");
         
         if(!file.exists()) {
             throw new FileNotFoundException("Specified file does not exist");

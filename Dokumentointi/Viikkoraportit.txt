@@ -1,0 +1,17 @@
+Viikko 2:
+
+Tein Huffman enkoodauksen tekstitiedostoille käyttäen javan valmiita tietorakenteita.
+Ohjelma on edistynyt mukavasti ja toiminta selkiytynyt.
+Tällä viikolla olen oppinut testauksesta jonkin verran, en tehnyt myöskään
+projektistani tietoisesti Maven projektia, joten olen saanut tapella hieman
+esimerkiksi netbeansin kanssa unit-testaukseen liittyen. Opin myös, että todennäköisesti
+paras tapa yksikkötestata protected metodejani, olisi käyttää jotain mockaus kirjastoa.
+En ehtinyt kuitenkaan vielä tutustumaan esimerkiksi mockitoon, joten testaus jäi vielä
+vähän vaiheeseen. Parannan testejäni ensi viikolle.
+
+Epäselvyyksiä ei juurikaan ole, kaikki omatekemäni tekstitiedostot ovat mukavasti
+tiivistyneet n. 40-60%:iin alkuperäisestä. Yhden tekstitiedoston latasin jostain muualta
+ja yllätyksekseni se ei kyllä toiminut. Tutkin asiaa, josko siinä olisi jokin merkistö-ongelma
+tai jotain omituisia erikoismerkkejä tms.
+
+Ensi viikolla vuorossa on tiedoston dekoodaus, ja sen jälkeen LZW javan omilla rakenteilla.
