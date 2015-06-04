@@ -9,7 +9,7 @@ public class Main {
         final HuffmanEngine engine = new HuffmanEngine();
         
         //check for file
-        File file = new File("./misc/pien.txt");
+        File file = new File("./misc/lirum.txt");
         File compressedFile = new File("./misc/testCompressed");
         
         if(!file.exists()) {

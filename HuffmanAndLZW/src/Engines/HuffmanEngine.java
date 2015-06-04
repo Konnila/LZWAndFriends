@@ -387,7 +387,7 @@ public class HuffmanEngine implements ICompression {
             
             fis.skip(Long.parseLong(compressedDataOffset));
           
-            readCompressedData(reader, writer);
+            readCompressedData(writer, fis);
             
 //            while(true) {
 //                int c = reader.read();
@@ -512,18 +512,18 @@ public class HuffmanEngine implements ICompression {
      * Everything the reader reads here, should be compressed
      * @param reader 
      */
-    private void readCompressedData(BufferedReader reader, OutputStreamWriter writer) throws IOException, Exception {
-        int c;
+    private void readCompressedData(OutputStreamWriter writer, FileInputStream fis) throws IOException, Exception {
         ArrayList array = new ArrayList<String>();
         while (true) {
-            c = reader.read();
-            System.out.println( "read char:" + c);
-            if(c < 0)
-                break;
-            boolean[] bits = decodeByte((char)c);
+            int bits = fis.read();
             
-            for (int i = 0; i < bits.length; i++) {
-                if (bits[i]) {
+            if(bits == -1)
+                break;
+            
+            boolean[] bites = decodeByte((char)bits);
+            
+            for (int i = 0; i < bites.length; i++) {
+                if (bites[i]) {
                     array.add("1");
                 } else {
                     array.add("0");
@@ -531,8 +531,6 @@ public class HuffmanEngine implements ICompression {
 
             }
         }
-        
-        System.out.println(array);
         
         HuffmanNode root = pqueue.peek();
         HuffmanNode traverser = pqueue.peek();
@@ -565,5 +563,6 @@ public class HuffmanEngine implements ICompression {
 
         }
         writer.close();
+        fis.close();
     }
 }
