@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 public class Main {
-
+    
     public static void main(String[] args) throws Exception {
+        final HuffmanEngine engine = new HuffmanEngine();
+        
         //check for file
-        File file = new File("../misc/lirum.txt");
+        File file = new File("./misc/pien.txt");
+        File compressedFile = new File("./misc/testCompressed");
         
         if(!file.exists()) {
             throw new FileNotFoundException("Specified file does not exist");
@@ -27,12 +30,12 @@ public class Main {
         
         switch (argument) {
             case "-e": 
-                HuffmanEngine engine = new HuffmanEngine();
                 engine.encode(file);
                 
                 break;
                 
             case "-d":
+                engine.decode(compressedFile);
                 break;
                 
             default:

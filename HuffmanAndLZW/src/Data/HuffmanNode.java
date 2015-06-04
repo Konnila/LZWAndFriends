@@ -18,7 +18,7 @@ public class HuffmanNode implements Comparable<HuffmanNode>{
         return frequency;
     }
     
-    public int getCharacter() {
+    public char getCharacter() {
         return c;
     }
     
