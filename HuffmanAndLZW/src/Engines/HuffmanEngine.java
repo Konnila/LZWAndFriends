@@ -1,13 +1,10 @@
 package Engines;
 
 import Data.HuffmanNode;
+import Data.MinHeap;
+import Interfaces.HuffmanPriorityQueue;
 import Interfaces.ICompression;
-import com.sun.corba.se.impl.orbutil.ORBUtility;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,29 +13,23 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import sun.misc.IOUtils;
 
 public class HuffmanEngine implements ICompression {
-
+    //TODO replace with own implementation
     private PriorityQueue<HuffmanNode> pqueue;
+    private HuffmanPriorityQueue pq;
     private int[] freqTable;
-    //replace with prefixMap
     private String[] prefixTable = new String[256];
-    private Map<Character,String> prefixMap;
 
     public HuffmanEngine() {
-        this.prefixMap = new HashMap<>();
         pqueue = new PriorityQueue<>();
+        pq = new MinHeap(10000);
     }
     
     /**
@@ -53,8 +44,11 @@ public class HuffmanEngine implements ICompression {
             //move into another method
              //insert orphans
              for (int i = 0; i < freqTable.length; i++) {
-                 if (freqTable[i] > 0)
-                    pqueue.offer(new HuffmanNode((char)i, freqTable[i], null, null));
+                 if (freqTable[i] > 0) {
+                     pqueue.offer(new HuffmanNode((char)i, freqTable[i], null, null));
+                     pq.offer(new HuffmanNode((char)i, freqTable[i], null, null));
+                 }
+                    
              }
              
              //construct the tree
@@ -64,13 +58,17 @@ public class HuffmanEngine implements ICompression {
                  HuffmanNode second = pqueue.poll();
                  
                  pqueue.offer(new HuffmanNode('\u0000', first.getFrequency() + second.getFrequency(), first, second));
+                 pq.mergeNodes();
              }
+             
              
              //now the tree is in the first and only node of pqueue
              //next populate the prefixtable
              prefixTable = populatePrefixTable(pqueue.peek(), "");
              
              printTree(pqueue.peek(),"");
+             System.out.println("");
+             printTree(pq.peek(), "");
              
              //write the compressed data into file
              writeIntoFile("testCompressed", prefixTable, file);
@@ -85,7 +83,7 @@ public class HuffmanEngine implements ICompression {
     
     /**
     * builds frequency table for characters in a file. 
-    * Stores into integerarray where index is corresponding extended ascii code.
+    * Stores into integer array where index is corresponding extended ascii code.
     *  Value in that index is the amount of that ascii code in file
     * @param file
     */
@@ -119,10 +117,10 @@ public class HuffmanEngine implements ICompression {
             //System.out.println("charINT: " + (int)node.getCharacter() + " = " + prefix);
             //prefixTable soon redundant
             prefixTable[node.getCharacter()] = prefix;
-            prefixMap.put(node.getCharacter(), prefix);
             
             return prefixTable;
         }
+        
         else {
             //proceed recursively since this is not a leaf
             if(node.getLeftChild() != null)
@@ -156,9 +154,8 @@ public class HuffmanEngine implements ICompression {
                 try (FileOutputStream fileOutputStream = new FileOutputStream(compressedFile)) {
 //                    add the length of prefixtable to start of file
 //                    fileOutputStream.write(prefixTable.);
-                    int bytesUsed = writeHeaders(fileOutputStream);
-                    System.out.println("bytes used by headers: " + bytesUsed);
-                    System.out.println("headers in bytes: " + compressedFile.length());
+                    
+
                     BitSet bs = new BitSet();
                     int bitSetIndex = 0;
 
@@ -216,12 +213,13 @@ public class HuffmanEngine implements ICompression {
                     
                     for(int i = 0; i < bytes.length; i++) {
                         boolean[] test = decodeByte((char)bytes[i]);
-                        System.out.println(test);
                     }
-                            
                     
                     //System.out.println(bytes[0]);
                     System.out.println("compressed length: " + bytes.length);
+                    
+                    int bytesUsed = writeHeaders(fileOutputStream, 8-remainder);
+
                     fileOutputStream.write(bytes);
                     
                 }
@@ -242,7 +240,7 @@ public class HuffmanEngine implements ICompression {
     }
     
     //return the bytes used as int
-    protected int writeHeaders(FileOutputStream s) throws FileNotFoundException, IOException {
+    protected int writeHeaders(FileOutputStream s, int trailingBits) throws FileNotFoundException, IOException {
         int count = 0;
         String countString = "";
         long bytesUsed = 0;
@@ -250,15 +248,11 @@ public class HuffmanEngine implements ICompression {
         for (int i = 0; i < freqTable.length; i++) {
             if(freqTable[i] > 0)
                 count++;
-                
         }
         countString += count + "\n";
         
         s.write(countString.getBytes("UTF8"));
         bytesUsed += countString.getBytes("UTF8").length;
-        
-        System.out.println("CountString; " + countString);
-        System.out.println("length after countString: " + countString.getBytes("UTF8").length);
         
         for (int i = 0; i < freqTable.length; i++) {
             String outputString = "";
@@ -275,88 +269,45 @@ public class HuffmanEngine implements ICompression {
         System.out.println("So in total: " + bytesFromBytesUsedString);
         //bytesUsed += bytesUsed + (("" + bytesUsed).getBytes().length);
         System.out.println("bytesUsed  total so far: " + (bytesUsed + bytesFromBytesUsedString));
-        s.write((""+(bytesUsed+bytesFromBytesUsedString) + "\n").getBytes("UTF8"));
+        
+        long bytesFromTrailingBitsString =(""+ trailingBits+"\n").getBytes("UTF8").length;
+        
+        s.write(("" + trailingBits + "\n").getBytes("UTF8"));
+        s.write((""+(bytesUsed+bytesFromBytesUsedString+bytesFromTrailingBitsString) + "\n").getBytes("UTF8"));
         
         return (int)bytesUsed;
     }
-    
-//    public File readHeaders(File file) throws FileNotFoundException, IOException {
-//        FileReader r = new FileReader(file);
-//        BufferedReader reader = new BufferedReader(r);
-//        
-//        //we return this file - it will only contain encoded data w/o headers
-//        File tempFile = new File("temp");
-//        
-//        //this many lines after this line forms our prefixTable
-//        int headerLineCount = Integer.parseInt(reader.readLine());
-//       
-//        //so lets form the freqTable!
-//        for(int i = 0; i < headerLineCount; i++) {
-//            String[] entry = new String[2];
-//            entry = reader.readLine().split(" ");
-//            
-//            freqTable[Integer.parseInt(entry[0])] = Integer.parseInt(entry[1]);
-//        }
-//        
-//        //and now the prefixTable
-//        //move into another method
-//        //insert orphans
-//        for (int i = 0; i < freqTable.length; i++) {
-//            if (freqTable[i] > 0)
-//               pqueue.offer(new HuffmanNode((char)i, freqTable[i], null, null));
-//        }
-//
-//        //construct the tree
-//        while(pqueue.size() > 1) {
-//            //two least significant nodes TODO: check what to do if one is null
-//            HuffmanNode first = pqueue.poll();
-//            HuffmanNode second = pqueue.poll();
-//
-//            pqueue.offer(new HuffmanNode('\u0000', first.getFrequency() + second.getFrequency(), first, second));
-//        }
-//        
-//        prefixTable = populatePrefixTable(pqueue.poll(), "");
-//        
-//        return reader;
-//    }
     
     @Override
     public void decode(File file) {
         freqTable = new int[256];
         FileReader r = null;
-        int bytesRead = 0;
         
         try {
             FileInputStream fis = new FileInputStream(file);
             
-            
             System.out.println("file length in bytes: " + file.length());
             r = new FileReader(file);
             BufferedReader reader = new BufferedReader(r);
-            reader.mark(50000);
-            File outputFile = new File("./misc/outPut");
+
+            File outputFile = new File("./misc/outPut.txt");
             FileWriter writer = new FileWriter(outputFile);
             
             //this many lines after this line forms our prefixTable
             int headerLineCount = Integer.parseInt(reader.readLine());
+            //int trailingBitCount = Integer.parseInt(reader.readLine());
             
-            
-            //writer.append((""+headerLineCount));
-            
+            //System.out.println("trailingBitCount: " + trailingBitCount);
             
             //so lets form the freqTable!
             for (int i = 0; i < headerLineCount; i++) {
                 String[] entry = new String[2];
-                String asd = reader.readLine();
-                entry = asd.split(" ");
-                writer.append(asd);
-                bytesRead += asd.getBytes().length;
+                String freqTableEntryData = reader.readLine();
+                entry = freqTableEntryData.split(" ");
+                //writer.append(freqTableEntryData);
                 
                 freqTable[Integer.parseInt(entry[0])] = Integer.parseInt(entry[1]);
             }
-            
-            //write the amount of bytes the headers take
-            //writer.append("" + outputFile.length());
             
             //and now the prefixTable
             //move into another method
@@ -377,69 +328,15 @@ public class HuffmanEngine implements ICompression {
             }
             
             prefixTable = populatePrefixTable(pqueue.peek(), "");
-            
-            
-            String compressedDataOffset = reader.readLine();
+            int trailingBits = Integer.parseInt(reader.readLine());
+            long compressedDataOffset = Long.parseLong( reader.readLine() );
             System.out.println("compressed data begins at: " + compressedDataOffset);
             
-            reader.reset();
-            reader.skip(Long.parseLong(compressedDataOffset));
-            
-            fis.skip(Long.parseLong(compressedDataOffset));
+            fis.skip(compressedDataOffset);
           
-            readCompressedData(writer, fis);
+            readCompressedData(writer, fis, trailingBits);
             
-//            while(true) {
-//                int c = reader.read();
-//                
-//                if(c < 0)
-//                    break;
-//                
-//                boolean[] bits = decodeByte(c);
-//
-//                HuffmanNode root = pqueue.peek();
-//                HuffmanNode traverser = pqueue.peek();
-//                
-//                
-//                
-//                for(int i = 0; i < bits.length; i++) {
-//                    System.out.print("kierros: " + i);
-//                    System.out.println(" ");
-//                            
-//                    if(traverser == null)
-//                        throw new Exception("Something wrong with decoding");
-//                    if(traverser.isLeafNode()) {
-//                        System.out.println(traverser.getCharacter());
-//                        writer.append(traverser.getCharacter());
-//                        traverser = root;
-//                        memory = new boolean[100];
-//                        memoryIndex = 0;
-//                    }
-//                        
-//                    else if(bits[i]) {
-//                        traverser = traverser.getRightChild();
-//                        memory[memoryIndex] = bits[i];
-//                        memoryIndex++;
-//                    }
-//                    else {
-//                        traverser = traverser.getLeftChild();
-//                        memory[memoryIndex] = bits[i];
-//                        memoryIndex++;
-//                    }
-//                        
-//                    
-//                        
-//                }
-//                writer.close();
-//                
-//                printTree(root, "");
-//                
-//                //remove
-//                break;
-//                
-//                
-//            }
-            
+            reader.close();
             
             
         } catch (FileNotFoundException ex) {
@@ -462,32 +359,23 @@ public class HuffmanEngine implements ICompression {
     
     protected boolean[] decodeByte(char data) {
         boolean[] bits = new boolean[8];
-        String prefix = "";
+
         int masked = data;
+        
         for(int i = 0; i < bits.length; i++) {
             bits[i] = (masked & 0b00000001) == 0b00000001;
             
-            //for testing
-            if(!bits[i]) {
-                prefix += "0";
-            }
-            else
-                prefix += "1";
-            
             masked >>= 1;
         }
-        System.out.println(prefix);
-//        for (int i=0; i < 8; i++) {
-//                bits[i] = ( (data & (1 << (7-i)) ) != 0 );
-//        }
         
         return bits;
     }
     
-    public int[] getFreqTable() {
-        return freqTable;
-    }
-    
+    /**
+     * For testing what the characters and prefixes associated to them are.
+     * @param node
+     * @param prefix 
+     */
     public void printTree(HuffmanNode node, String prefix) {
         if(node.isLeafNode()) {
             System.out.print(node.getCharacter());
@@ -512,8 +400,9 @@ public class HuffmanEngine implements ICompression {
      * Everything the reader reads here, should be compressed
      * @param reader 
      */
-    private void readCompressedData(OutputStreamWriter writer, FileInputStream fis) throws IOException, Exception {
+    private void readCompressedData(OutputStreamWriter writer, FileInputStream fis, int numberOfTrailingBits) throws IOException, Exception {
         ArrayList array = new ArrayList<String>();
+        
         while (true) {
             int bits = fis.read();
             
@@ -528,9 +417,11 @@ public class HuffmanEngine implements ICompression {
                 } else {
                     array.add("0");
                 }
-
             }
         }
+        System.out.println("trailing bits: " + numberOfTrailingBits);
+        for(int i = 0; i < numberOfTrailingBits-1; i++)
+            array.remove(array.size()-1);
         
         HuffmanNode root = pqueue.peek();
         HuffmanNode traverser = pqueue.peek();
@@ -538,13 +429,11 @@ public class HuffmanEngine implements ICompression {
         printTree(root, "");
         
         for (int i = 0; i < array.size(); i++) {
-            System.out.println(array.get(i));
             HuffmanNode r = traverser.getRightChild();
             HuffmanNode l = traverser.getLeftChild();
             
              if (array.get(i) == "1") {
                 if(r.isLeafNode()) {
-                    System.out.println(Character.toUpperCase(r.getCharacter()));
                     writer.append(r.getCharacter());
                     traverser = root;
                 }
@@ -553,7 +442,6 @@ public class HuffmanEngine implements ICompression {
 
             } else {
                  if(l.isLeafNode()) {
-                     System.out.println(Character.toUpperCase(l.getCharacter()));
                      writer.append(l.getCharacter());
                      traverser = root;
                  }
