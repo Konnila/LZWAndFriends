@@ -43,33 +43,33 @@ public class MinHeap implements HuffmanPriorityQueue{
     public int size() {
         return pointer;
     }
-
+    
 
     @Override
     public void mergeNodes() {
         comboNode = new HuffmanNode();
-        this.delMin(comboNode);
-        this.delMin(comboNode);
-        comboNode.setFrequency(comboNode.getLeftChild().getFrequency());
-        comboNode.setFrequency(comboNode.getRightChild().getFrequency());
+        HuffmanNode leftC = delMin();
+        HuffmanNode rightC = delMin();
+        comboNode.setFrequency(leftC.getFrequency() + rightC.getFrequency());
+        comboNode.left = leftC;
+        comboNode.right = rightC;
+        
         this.offer(comboNode);
         
         comboNode = null;
     }
     
-    public void delMin(HuffmanNode combo){
-        if(combo.getLeftChild()== null){
-            combo.setLeft(this.heap[1]);
-        }
-        else{
-            combo.setRight(this.heap[1]);
-        }
+    public HuffmanNode delMin(){
+        HuffmanNode toDelete = heap[1];  
         this.heap[1] = this.heap[pointer];
         pointer--;
+        
         heapify(1);
+        
+        return toDelete;
     }
 
-        public void heapify(int index){
+    public void heapify(int index){
         if((index*2)+1 <= pointer){
             if ((heap[index*2].getFrequency()) < heap[index].getFrequency() || (heap[(index*2)+1].getFrequency()) < heap[index].getFrequency()){
                 int smaller;

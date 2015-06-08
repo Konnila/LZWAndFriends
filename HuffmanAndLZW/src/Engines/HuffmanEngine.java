@@ -58,13 +58,15 @@ public class HuffmanEngine implements ICompression {
                  HuffmanNode second = pqueue.poll();
                  
                  pqueue.offer(new HuffmanNode('\u0000', first.getFrequency() + second.getFrequency(), first, second));
-                 pq.mergeNodes();
+                 
              }
              
+             while(pq.size() > 1)
+                 pq.mergeNodes();
              
              //now the tree is in the first and only node of pqueue
              //next populate the prefixtable
-             prefixTable = populatePrefixTable(pqueue.peek(), "");
+             prefixTable = populatePrefixTable(pq.peek(), "");
              
              printTree(pqueue.peek(),"");
              System.out.println("");
