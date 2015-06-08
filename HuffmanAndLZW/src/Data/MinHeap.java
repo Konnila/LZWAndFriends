@@ -6,7 +6,6 @@ public class MinHeap implements HuffmanPriorityQueue{
     private int pointer = 0;
     private HuffmanNode[] heap;
     private HuffmanNode tempNode, tempNode2, comboNode;
-    private int heapSize;
     
     
     public MinHeap(int size) {
