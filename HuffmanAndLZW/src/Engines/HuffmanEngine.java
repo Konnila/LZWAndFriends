@@ -317,6 +317,7 @@ public class HuffmanEngine implements ICompression {
             for (int i = 0; i < freqTable.length; i++) {
                 if (freqTable[i] > 0) {
                     pqueue.offer(new HuffmanNode((char) i, freqTable[i], null, null));
+                    pq.offer(new HuffmanNode((char) i, freqTable[i], null, null));
                 }
             }  
             
@@ -329,7 +330,10 @@ public class HuffmanEngine implements ICompression {
                 pqueue.offer(new HuffmanNode('\u0000', first.getFrequency() + second.getFrequency(), first, second));
             }
             
-            prefixTable = populatePrefixTable(pqueue.peek(), "");
+            while(pq.size() > 1)
+                pq.mergeNodes();
+                
+            prefixTable = populatePrefixTable(pq.peek(), "");
             int trailingBits = Integer.parseInt(reader.readLine());
             long compressedDataOffset = Long.parseLong( reader.readLine() );
             System.out.println("compressed data begins at: " + compressedDataOffset);
@@ -425,8 +429,8 @@ public class HuffmanEngine implements ICompression {
         for(int i = 0; i < numberOfTrailingBits-1; i++)
             array.remove(array.size()-1);
         
-        HuffmanNode root = pqueue.peek();
-        HuffmanNode traverser = pqueue.peek();
+        HuffmanNode root = pq.peek();
+        HuffmanNode traverser = pq.peek();
         
         printTree(root, "");
         
