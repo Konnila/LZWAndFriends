@@ -73,11 +73,6 @@ public class MinHeapTests {
         System.out.println("mergeNodes");
         heap.mergeNodes();
         Assert.assertEquals(2, heap.size());
-        heap.mergeNodes();
-        System.out.println((int)heap.peek().getCharacter());
-        System.out.println((int)heap.peek().getLeftChild().getCharacter());
-        
-        System.out.println((int)heap.peek().getRightChild().getCharacter());
     }
     
     @After

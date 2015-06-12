@@ -2,7 +2,7 @@ package Data;
 
 import Interfaces.HuffmanPriorityQueue;
 
-public class MinHeap implements HuffmanPriorityQueue{
+public class MinHeap implements HuffmanPriorityQueue {
     private int pointer = 0;
     private HuffmanNode[] heap;
     private HuffmanNode tempNode, tempNode2, comboNode;
@@ -47,8 +47,8 @@ public class MinHeap implements HuffmanPriorityQueue{
     @Override
     public void mergeNodes() {
         comboNode = new HuffmanNode();
-        HuffmanNode leftC = delMin();
-        HuffmanNode rightC = delMin();
+        HuffmanNode leftC = poll();
+        HuffmanNode rightC = poll();
         comboNode.setFrequency(leftC.getFrequency() + rightC.getFrequency());
         comboNode.left = leftC;
         comboNode.right = rightC;
@@ -58,7 +58,7 @@ public class MinHeap implements HuffmanPriorityQueue{
         comboNode = null;
     }
     
-    public HuffmanNode delMin(){
+    public HuffmanNode poll(){
         HuffmanNode toDelete = heap[1];  
         this.heap[1] = this.heap[pointer];
         pointer--;
@@ -68,7 +68,7 @@ public class MinHeap implements HuffmanPriorityQueue{
         return toDelete;
     }
 
-    public void heapify(int index){
+    protected void heapify(int index){
         if((index*2)+1 <= pointer){
             if ((heap[index*2].getFrequency()) < heap[index].getFrequency() || (heap[(index*2)+1].getFrequency()) < heap[index].getFrequency()){
                 int smaller;

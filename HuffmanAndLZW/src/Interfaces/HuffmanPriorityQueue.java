@@ -7,8 +7,9 @@ import Data.HuffmanNode;
  * @author Toni Könnilä
  */
 public interface HuffmanPriorityQueue {
-    HuffmanNode peek();
     void offer(HuffmanNode node);
     void mergeNodes();
+    HuffmanNode peek();
+    HuffmanNode poll();
     int size();
 }

@@ -136,9 +136,6 @@ public class HuffmanEngine implements ICompression {
         return prefixTable;
     }
     
-    public HashMap populatePrefixMap() {
-        return null;
-    }
     
     /**
      * First writes header data (Huffman tree)
@@ -297,16 +294,12 @@ public class HuffmanEngine implements ICompression {
             
             //this many lines after this line forms our prefixTable
             int headerLineCount = Integer.parseInt(reader.readLine());
-            //int trailingBitCount = Integer.parseInt(reader.readLine());
-            
-            //System.out.println("trailingBitCount: " + trailingBitCount);
             
             //so lets form the freqTable!
             for (int i = 0; i < headerLineCount; i++) {
                 String[] entry = new String[2];
                 String freqTableEntryData = reader.readLine();
                 entry = freqTableEntryData.split(" ");
-                //writer.append(freqTableEntryData);
                 
                 freqTable[Integer.parseInt(entry[0])] = Integer.parseInt(entry[1]);
             }
@@ -316,20 +309,11 @@ public class HuffmanEngine implements ICompression {
             //insert orphans
             for (int i = 0; i < freqTable.length; i++) {
                 if (freqTable[i] > 0) {
-                    pqueue.offer(new HuffmanNode((char) i, freqTable[i], null, null));
                     pq.offer(new HuffmanNode((char) i, freqTable[i], null, null));
                 }
             }  
             
             //construct the tree
-            while (pqueue.size() > 1) {
-                //two least significant nodes TODO: check what to do if one is null
-                HuffmanNode first = pqueue.poll();
-                HuffmanNode second = pqueue.poll();
-
-                pqueue.offer(new HuffmanNode('\u0000', first.getFrequency() + second.getFrequency(), first, second));
-            }
-            
             while(pq.size() > 1)
                 pq.mergeNodes();
                 
@@ -343,8 +327,7 @@ public class HuffmanEngine implements ICompression {
             readCompressedData(writer, fis, trailingBits);
             
             reader.close();
-            
-            
+            r.close();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(HuffmanEngine.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -393,9 +376,7 @@ public class HuffmanEngine implements ICompression {
             printTree(node.getLeftChild(), prefix + "0");
         if(node.getRightChild() != null)
             printTree(node.getRightChild(), prefix + "1");
-        
-        return;
-        
+                
     }
     
     public PriorityQueue<HuffmanNode> getPqueue() {
