@@ -3,9 +3,11 @@ package Engines;
 import Interfaces.ICompression;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +68,8 @@ public class LZWEngine implements ICompression {
             
             reader.close();
             
+            writeIntoFile("lzwCompressed", result);
+            
         } catch (FileNotFoundException ex) {
             Logger.getLogger(LZWEngine.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -74,9 +78,43 @@ public class LZWEngine implements ICompression {
         
     }
 
-    @Override
-    public void writeIntoFile(String filename, String[] prefixtable, File file) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+    public void writeIntoFile(String filename, List<Integer> values) throws FileNotFoundException, IOException {
+        File file = new File("./misc/" + filename);
+        try (FileOutputStream fis = new FileOutputStream(file)) {
+            BitSet bs = new BitSet();
+            int bitIndex = -1;
+            
+            for (int value :  values) {
+                boolean[] asTwelveBits = asBits(value);
+                for (boolean bit : asTwelveBits) {
+                    if(bit)
+                        bs.set(bitIndex++);
+                    else
+                        bs.set(bitIndex++, false);
+                }
+            }
+            
+            //add magic integer zero as trailing
+            if((bs.length() % 8) != 0)
+                bs.set(bitIndex++, bitIndex+7, false);
+            
+            fis.write(bs.toByteArray());
+        }
+    }
+
+    private boolean[] asBits(int value) {
+        boolean[] toReturn = new boolean[12];
+        
+        int integer = value;
+        
+        for (int i = 0; i < toReturn.length; i++) {
+            toReturn[i] = (integer & 1) == 1;
+            
+            integer >>= 1;
+        }
+        
+        return toReturn;
     }
     
 }

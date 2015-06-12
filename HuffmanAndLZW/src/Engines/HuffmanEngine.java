@@ -145,7 +145,6 @@ public class HuffmanEngine implements ICompression {
      * @param prefixTable
      * @param file 
      */
-    @Override
     public void writeIntoFile(String outputFilename, String[] prefixTable, File file) {
         try {
             File compressedFile = new File("./misc/" + outputFilename);
