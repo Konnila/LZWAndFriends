@@ -16,7 +16,7 @@ public class Main {
         
         //check for file
         File file = new File("./misc/lzw.txt");
-        File compressedFile = new File("./misc/testCompressed");
+        File compressedFile = new File("./misc/lzwCompressed");
         
         if(!file.exists()) {
             throw new FileNotFoundException("Specified file does not exist");

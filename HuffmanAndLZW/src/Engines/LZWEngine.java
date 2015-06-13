@@ -2,6 +2,7 @@ package Engines;
 
 import Interfaces.ICompression;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -19,6 +20,9 @@ public class LZWEngine implements ICompression {
     private Map<String,Integer> prefixMap;
     private int prefixMapSize;
     
+    /**
+     * Initializes the prefixMap which is needed in both encode and decode
+     */
     public LZWEngine() {
         prefixMap = new HashMap<>();
         
@@ -31,7 +35,30 @@ public class LZWEngine implements ICompression {
     
     @Override
     public void decode(File file) {
-        throw new UnsupportedOperationException("Have some patience"); //To change body of generated methods, choose Tools | Templates.
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            
+            byte[] twoInputs = new byte[3];
+            fis.read(twoInputs);
+            
+            System.out.println("first8bits as bin string java: " + Integer.toBinaryString(twoInputs[0] &
+                    0b00000000000000000000000011111111));
+            System.out.println("first8bits: " + (twoInputs[0] & 0b00000000000000000000000011111111));
+            System.out.println("second8bits: " + Integer.toBinaryString(twoInputs[1]));
+            
+            int first = decodeFirst(twoInputs);
+            
+            System.out.println("first: " + first);
+            int second = decodeSecond(twoInputs);
+            
+            
+            fis.close();
+            
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(LZWEngine.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(LZWEngine.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -86,18 +113,23 @@ public class LZWEngine implements ICompression {
             int bitIndex = -1;
             
             for (int value :  values) {
+                System.out.println("value: " + value);
+                System.out.println("asBinaryString javas: " + Integer.toBinaryString(value));
+
                 boolean[] asTwelveBits = asBits(value);
-                for (boolean bit : asTwelveBits) {
-                    if(bit)
-                        bs.set(bitIndex++);
+                for(int i = 0; i < asTwelveBits.length; i++) {
+                    if(asTwelveBits[i])
+                        bs.set(++bitIndex);
                     else
-                        bs.set(bitIndex++, false);
+                        bs.set(++bitIndex, false);
                 }
             }
             
             //add magic integer zero as trailing
             if((bs.length() % 8) != 0)
-                bs.set(bitIndex++, bitIndex+7, false);
+                bs.set(++bitIndex, bitIndex+7, false);
+            
+            System.out.println(bs.toString());
             
             fis.write(bs.toByteArray());
         }
@@ -114,7 +146,34 @@ public class LZWEngine implements ICompression {
             integer >>= 1;
         }
         
+        String asBin = "";
+        for (int i = 0; i < toReturn.length; i++) {
+            if(toReturn[i])
+                asBin += "1";
+            else
+                asBin += "0";
+        }
+        System.out.println("value as binary: " + asBin);
         return toReturn;
+    }
+
+    private int decodeFirst(byte[] twoInputs) {
+        int secondPart = twoInputs[1] & 0b00000000000000000000000000001111;
+        secondPart <<= 8;
+        
+        System.out.println("secondPart: " + Integer.toBinaryString(secondPart));
+        
+        int firstPart = twoInputs[0] & 0b00000000000000000000000011111111;
+        
+        System.out.println("a " + Integer.toBinaryString(firstPart | secondPart));
+        return (firstPart | secondPart);
+    }
+
+    private int decodeSecond(byte[] twoInputs) {
+        int firstPart = (twoInputs[1] & 0b00001111);
+        firstPart <<= 8;
+        
+        return (firstPart | twoInputs[2]);
     }
     
 }
