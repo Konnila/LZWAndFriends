@@ -18,40 +18,67 @@ import java.util.logging.Logger;
 public class LZWEngine implements ICompression {
     
     private Map<String,Integer> prefixMap;
-    private int prefixMapSize;
+    private Map<Integer,String> intMap;
+    
+    private int mapSize;
     
     /**
-     * Initializes the prefixMap which is needed in both encode and decode
+     * Initializes the prefixMap (needed in encode) and intMap (needed in decode)
      */
     public LZWEngine() {
         prefixMap = new HashMap<>();
         
-        //add all characters to the map
+        //add all characters to the prefixmap
         for(int i = 0; i < 256; i++) 
             prefixMap.put(String.valueOf((char)i), i);
         
-        prefixMapSize = 256;
+        // Build the intMap.
+        intMap = new HashMap<>();
+        for (int i = 0; i < 256; i++)
+            intMap.put(i, "" + (char)i);
+        
+        mapSize = 256;
     }
     
     @Override
     public void decode(File file) {
         try {
+            
             FileInputStream fis = new FileInputStream(file);
+            FileOutputStream fos = new FileOutputStream(new File("./misc/outPut.txt"));
+            List<Integer> inputs = new ArrayList<>();
             
             byte[] twoInputs = new byte[3];
-            fis.read(twoInputs);
+            while(fis.read(twoInputs) != -1) {
+                int first = decodeFirst(twoInputs);
+                int second = decodeSecond(twoInputs);
+                
+                inputs.add(first);
+                inputs.add(second);
+            }
             
-            System.out.println("first8bits as bin string java: " + Integer.toBinaryString(twoInputs[0] &
-                    0b00000000000000000000000011111111));
-            System.out.println("first8bits: " + (twoInputs[0] & 0b00000000000000000000000011111111));
-            System.out.println("second8bits: " + Integer.toBinaryString(twoInputs[1]));
+            String w = "" + (char)(int)inputs.remove(0);
+            fos.write(w.getBytes());
             
-            int first = decodeFirst(twoInputs);
+            for (int k : inputs) {
+                String entry;
+                if(intMap.containsKey(k))
+                    entry = intMap.get(k);
+                else if(k == mapSize)
+                    entry = w + w.charAt(0);
+                else
+                    throw new IllegalArgumentException("Bad compressed k: " + k);
+                
+                fos.write(entry.getBytes());
+                
+                // Add w+entry[0] to the dictionary.
+                intMap.put(mapSize++, w + entry.charAt(0));
+ 
+                w = entry;
+            }
             
-            System.out.println("first: " + first);
-            int second = decodeSecond(twoInputs);
-            
-            
+            System.out.println(inputs);
+                    
             fis.close();
             
         } catch (FileNotFoundException ex) {
@@ -82,7 +109,7 @@ public class LZWEngine implements ICompression {
                     w = wc;
                 else {
                     result.add(prefixMap.get(w));
-                    prefixMap.put(wc, prefixMapSize++);
+                    prefixMap.put(wc, mapSize++);
                     w = String.valueOf(c);
                 }
             }
@@ -161,19 +188,19 @@ public class LZWEngine implements ICompression {
         int secondPart = twoInputs[1] & 0b00000000000000000000000000001111;
         secondPart <<= 8;
         
-        System.out.println("secondPart: " + Integer.toBinaryString(secondPart));
-        
         int firstPart = twoInputs[0] & 0b00000000000000000000000011111111;
         
-        System.out.println("a " + Integer.toBinaryString(firstPart | secondPart));
         return (firstPart | secondPart);
     }
 
     private int decodeSecond(byte[] twoInputs) {
-        int firstPart = (twoInputs[1] & 0b00001111);
-        firstPart <<= 8;
+        int firstPart = (twoInputs[1] & 0b00000000000000000000000011110000);
+        firstPart >>= 4;
         
-        return (firstPart | twoInputs[2]);
+        int secondPart = (twoInputs[2] & 0b00000000000000000000000011111111);
+        secondPart <<= 4;
+        
+        return (firstPart | secondPart);
     }
     
 }
