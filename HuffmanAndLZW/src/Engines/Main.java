@@ -16,7 +16,9 @@ public class Main {
         
         //check for file
         File file = new File("./misc/lzw.txt");
+        File lzwTest = new File("./misc/lirum.txt");
         File compressedFile = new File("./misc/lzwCompressed");
+        File hCompressedFile = new File("./misc/testCompressed");
         
         if(!file.exists()) {
             throw new FileNotFoundException("Specified file does not exist");
@@ -41,7 +43,7 @@ public class Main {
                         break;
                     
                     case "-d":
-                        hEngine.decode(compressedFile);
+                        hEngine.decode(hCompressedFile);
                         break;
                     default:
                         throw new Error("Unknown argument. Use -d (decode) or -e (encode)");
@@ -50,7 +52,7 @@ public class Main {
             case "-l":
                 switch(argument) {
                     case "-e":
-                        lEngine.encode(file);
+                        lEngine.encode(lzwTest);
                         break;
                     case "-d":
                         lEngine.decode(compressedFile);

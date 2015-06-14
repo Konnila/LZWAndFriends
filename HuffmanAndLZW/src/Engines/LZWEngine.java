@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LZWEngine implements ICompression {
-    
     private Map<String,Integer> prefixMap;
     private Map<Integer,String> intMap;
     
@@ -30,7 +29,7 @@ public class LZWEngine implements ICompression {
         
         //add all characters to the prefixmap
         for(int i = 0; i < 256; i++) 
-            prefixMap.put(String.valueOf((char)i), i);
+            prefixMap.put("" + (char)i, i);
         
         // Build the intMap.
         intMap = new HashMap<>();
@@ -43,11 +42,11 @@ public class LZWEngine implements ICompression {
     @Override
     public void decode(File file) {
         try {
-            
             FileInputStream fis = new FileInputStream(file);
             FileOutputStream fos = new FileOutputStream(new File("./misc/outPut.txt"));
             List<Integer> inputs = new ArrayList<>();
             
+            //read two inputs at a time = 24 bits = 3 bytes
             byte[] twoInputs = new byte[3];
             while(fis.read(twoInputs) != -1) {
                 int first = decodeFirst(twoInputs);
@@ -56,6 +55,7 @@ public class LZWEngine implements ICompression {
                 inputs.add(first);
                 inputs.add(second);
             }
+            
             
             String w = "" + (char)(int)inputs.remove(0);
             fos.write(w.getBytes());
@@ -77,9 +77,10 @@ public class LZWEngine implements ICompression {
                 w = entry;
             }
             
-            System.out.println(inputs);
+            //System.out.println(inputs);
                     
             fis.close();
+            fos.close();
             
         } catch (FileNotFoundException ex) {
             Logger.getLogger(LZWEngine.class.getName()).log(Level.SEVERE, null, ex);
@@ -94,8 +95,8 @@ public class LZWEngine implements ICompression {
         List<Integer> result = new ArrayList<>();
         
         try {
-            //max length = 500mb
-            char[] content = new char[524288000];
+            //max length
+            char[] content = new char[624288000];
             FileReader reader = new FileReader(file);
             reader.read(content);
             
@@ -110,15 +111,13 @@ public class LZWEngine implements ICompression {
                 else {
                     result.add(prefixMap.get(w));
                     prefixMap.put(wc, mapSize++);
-                    w = String.valueOf(c);
+                    w = "" + c;
                 }
             }
             
             // Output the code for w.
             if (!w.equals(""))
                 result.add(prefixMap.get(w));
-            
-            System.out.println(result);
             
             reader.close();
             
@@ -140,8 +139,8 @@ public class LZWEngine implements ICompression {
             int bitIndex = -1;
             
             for (int value :  values) {
-                System.out.println("value: " + value);
-                System.out.println("asBinaryString javas: " + Integer.toBinaryString(value));
+                //System.out.println("value: " + value);
+                //System.out.println("asBinaryString javas: " + Integer.toBinaryString(value));
 
                 boolean[] asTwelveBits = asBits(value);
                 for(int i = 0; i < asTwelveBits.length; i++) {
@@ -153,10 +152,10 @@ public class LZWEngine implements ICompression {
             }
             
             //add magic integer zero as trailing
-            if((bs.length() % 8) != 0)
-                bs.set(++bitIndex, bitIndex+7, false);
+            if((bs.length() % 24) != 0)
+                bs.set(++bitIndex, bitIndex+11, false);
             
-            System.out.println(bs.toString());
+            //System.out.println(bs.toString());
             
             fis.write(bs.toByteArray());
         }
@@ -180,7 +179,7 @@ public class LZWEngine implements ICompression {
             else
                 asBin += "0";
         }
-        System.out.println("value as binary: " + asBin);
+        //System.out.println("value as binary: " + asBin);
         return toReturn;
     }
 
