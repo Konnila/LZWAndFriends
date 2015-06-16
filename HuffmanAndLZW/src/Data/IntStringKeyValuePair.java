@@ -1,7 +1,11 @@
 package Data;
 
+/**
+ * Key Value Pair that is used in LZW.
+ * IntToStringMap class uses these pairs. 
+ */
 public class IntStringKeyValuePair {
-    private int key;
+    private final int key;
     private String value;
     
     public IntStringKeyValuePair(int key, String value) {

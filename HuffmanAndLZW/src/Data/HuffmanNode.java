@@ -1,5 +1,8 @@
 package Data;
 
+/**
+ * Basic node that forms the Huffman Tree
+ */
 public class HuffmanNode implements Comparable<HuffmanNode>{
     char c;
     int frequency;

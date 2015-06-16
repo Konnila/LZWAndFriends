@@ -1,6 +1,6 @@
 package Engines;
 
-import Data.IntToStringMap;
+import Data.*;
 import Interfaces.ICompression;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,51 +10,45 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Engine that contains everything needed to LZW encode and decode a file
+ */
 public class LZWEngine implements ICompression {
-    private Map<String,Integer> prefixMap;
-    private Map<Integer,String> intMap;
     private IntToStringMap intToStrMap;
+    private LZWStringArray sarray;
     
     private int mapSize;
     
     /**
-     * Initializes the prefixMap (needed in encode) and intMap (needed in decode)
+     * Initializes the LZW String array (needed in encode) and Integer to String map (needed in decode)
      */
     public LZWEngine() {
-        prefixMap = new HashMap<>();
         intToStrMap = new IntToStringMap();
-        
-        
-        //add all characters to the prefixmap
-        for(int i = 0; i < 256; i++) {
-            prefixMap.put("" + (char)i, i);
-            
-        }
-            
+        sarray = new LZWStringArray();
         
         // Build the intMap.
-        intMap = new HashMap<>();
         for (int i = 0; i < 256; i++) {
-            intMap.put(i, "" + (char)i);
-            //intToStrMap.put(i, ""+(char)i);
+            intToStrMap.put(i, ""+(char)i);
+            sarray.put(""+ (char)i, i);
         }
             
-        
         mapSize = 256;
     }
     
+    /**
+     * LZW-decodes the given file. Creates a new file where all the data is uncompressed
+     * @param file 
+     */
     @Override
     public void decode(File file) {
         try {
             FileInputStream fis = new FileInputStream(file);
             FileOutputStream fos = new FileOutputStream(new File("./misc/outPut.txt"));
-            List<Integer> inputs = new ArrayList<>();
+            IntegerList listOfInputs = new IntegerList();
             
             //read two inputs at a time = 24 bits = 3 bytes
             byte[] twoInputs = new byte[3];
@@ -62,32 +56,30 @@ public class LZWEngine implements ICompression {
                 int first = decodeFirst(twoInputs);
                 int second = decodeSecond(twoInputs);
                 
-                inputs.add(first);
-                inputs.add(second);
+                listOfInputs.add(first);
+                listOfInputs.add(second);
             }
             
             
-            String w = "" + (char)(int)inputs.remove(0);
+            String w = "" + (char)(int)listOfInputs.get(0);
             fos.write(w.getBytes());
             
-            for (int k : inputs) {
+            for (int i = 1; i < listOfInputs.size(); i++) {
                 String entry;
-                if(intMap.containsKey(k))
-                    entry = intMap.get(k);
-                else if(k == mapSize)
+                if(intToStrMap.containsKey(listOfInputs.get(i)))
+                    entry = intToStrMap.get(listOfInputs.get(i));
+                else if(listOfInputs.get(i) == intToStrMap.size())
                     entry = w + w.charAt(0);
                 else
-                    throw new IllegalArgumentException("Bad compressed k: " + k);
+                    throw new IllegalArgumentException("Bad compressed k: " + listOfInputs.get(i));
                 
                 fos.write(entry.getBytes());
                 
                 // Add w+entry[0] to the dictionary.
-                intMap.put(mapSize++, w + entry.charAt(0));
+                intToStrMap.put(mapSize++, w + entry.charAt(0));
  
                 w = entry;
             }
-            
-            //System.out.println(inputs);
                     
             fis.close();
             fos.close();
@@ -99,6 +91,10 @@ public class LZWEngine implements ICompression {
         }
     }
 
+    /**
+     * LZW encodes a given file. Creates a new file that consists of compressed data.
+     * @param file 
+     */
     @Override
     public void encode(File file) {
         String w = "";
@@ -116,32 +112,41 @@ public class LZWEngine implements ICompression {
                 
                 String wc = w + c;
                 
-                if(prefixMap.containsKey(wc))
+                if(sarray.containsKey(wc)) {
                     w = wc;
+                }
                 else {
-                    result.add(prefixMap.get(w));
-                    prefixMap.put(wc, mapSize++);
+                    result.add(sarray.get(w));
+                    sarray.put(wc, mapSize++);
                     w = "" + c;
                 }
+                
             }
             
-            // Output the code for w.
-            if (!w.equals(""))
-                result.add(prefixMap.get(w));
+            if(!w.equals(""))
+                result.add(sarray.get(w));
             
             reader.close();
-            
+
             writeIntoFile("lzwCompressed", result);
             
         } catch (FileNotFoundException ex) {
             Logger.getLogger(LZWEngine.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(LZWEngine.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(LZWEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
         
     }
 
-
+    /**
+     * writes the compressed data into a new file
+     * @param filename
+     * @param values
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
     public void writeIntoFile(String filename, List<Integer> values) throws FileNotFoundException, IOException {
         File file = new File("./misc/" + filename);
         try (FileOutputStream fis = new FileOutputStream(file)) {
@@ -149,9 +154,6 @@ public class LZWEngine implements ICompression {
             int bitIndex = -1;
             
             for (int value :  values) {
-                //System.out.println("value: " + value);
-                //System.out.println("asBinaryString javas: " + Integer.toBinaryString(value));
-
                 boolean[] asTwelveBits = asBits(value);
                 for(int i = 0; i < asTwelveBits.length; i++) {
                     if(asTwelveBits[i])
@@ -165,12 +167,15 @@ public class LZWEngine implements ICompression {
             if((bs.length() % 24) != 0)
                 bs.set(++bitIndex, bitIndex+11, false);
             
-            //System.out.println(bs.toString());
-            
             fis.write(bs.toByteArray());
         }
     }
-
+    
+    /**
+     * gives bit representation of the given integer as boolean array
+     * @param value
+     * @return 
+     */
     private boolean[] asBits(int value) {
         boolean[] toReturn = new boolean[12];
         
@@ -181,18 +186,16 @@ public class LZWEngine implements ICompression {
             
             integer >>= 1;
         }
-        
-        String asBin = "";
-        for (int i = 0; i < toReturn.length; i++) {
-            if(toReturn[i])
-                asBin += "1";
-            else
-                asBin += "0";
-        }
-        //System.out.println("value as binary: " + asBin);
+
         return toReturn;
     }
 
+    /**
+     * program reads 3 bytes of compressed data at a time.
+     * This method extracts the first 12bit integer from those bytes
+     * @param twoInputs
+     * @return 
+     */
     private int decodeFirst(byte[] twoInputs) {
         int secondPart = twoInputs[1] & 0b00000000000000000000000000001111;
         secondPart <<= 8;
@@ -202,6 +205,12 @@ public class LZWEngine implements ICompression {
         return (firstPart | secondPart);
     }
 
+    /**
+     * program reads 3 bytes of compressed data at a time.
+     * This method extracts the second (and last) 12bit integer from those bytes
+     * @param twoInputs
+     * @return 
+     */
     private int decodeSecond(byte[] twoInputs) {
         int firstPart = (twoInputs[1] & 0b00000000000000000000000011110000);
         firstPart >>= 4;

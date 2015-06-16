@@ -2,6 +2,10 @@ package Data;
 
 import Interfaces.HuffmanPriorityQueue;
 
+/**
+ * very basic minimum heap to contain Huffman nodes
+ * @author Stolichnaya
+ */
 public class MinHeap implements HuffmanPriorityQueue {
     private int pointer = 0;
     private HuffmanNode[] heap;

@@ -12,15 +12,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-/**
- *
- * @author Stolichnaya
- */
 public class HuffmanEngineTests {
     public HuffmanEngine engine;
     
     public final String testFileName = "testFile.txt";
-    public final String testInput = "jeesus christ overlord, I am not feeling very well";
+    public final String testInput = "jeesus christ overlord 123 abcdefsjgh12%";
     public String prefixTable;
     
     public HuffmanEngineTests() {
@@ -43,7 +39,16 @@ public class HuffmanEngineTests {
     public void tearDown() {
         try {
             File file = new File(testFileName);
-            file.delete();
+            if(file.exists())
+                file.delete();
+            
+            File file2 = new File("./misc/testCompressed");
+            if(file2.exists())
+                file2.delete();
+            
+            File file3 = new File("./misc/outPut.txt");
+            if(file3.exists())
+                file3.delete();
         }
         //no file needed to delete
         catch(Exception e) {
@@ -52,9 +57,30 @@ public class HuffmanEngineTests {
     }
 
     @Test
-    public void testEncode_SunnyScenaario() {
+    public void testEncodeAndDecode_SunnyScenaario() {
         try {
-            engine.encode(writeIntoFile(testFileName, testInput));
+            File testFile = writeIntoFile(testFileName, testInput);
+            
+            System.out.println(testFile.length());
+            
+            engine.encode(testFile);
+            
+            
+            File compressed = new File("./misc/testCompressed");
+            
+            System.out.println(compressed.length());
+            
+            engine = new HuffmanEngine();
+            
+            engine.decode(compressed);
+            
+            File uncompressed = new File("./misc/outPut.txt");
+            
+            System.out.println(uncompressed.length());
+            
+            Assert.assertEquals(uncompressed.length(), testFile.length());
+            
+            
         } catch (IOException e) {
             Assert.fail();
         }

@@ -1,21 +1,5 @@
 package Data;
 
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author konnila
- */
 public class IntToStringMap {
     private int size;
     private final int INITIAL_SIZE = 4096;
@@ -33,6 +17,13 @@ public class IntToStringMap {
         return kv.getValue();
     }
     
+    public boolean containsKey(int key) {
+        if(key > table.length || table[key] == null)
+            return false;
+        
+        return true;
+    }
+    
     public void put(int key, String value) {
         if(size >= table.length)
             doubleSize();
@@ -48,6 +39,10 @@ public class IntToStringMap {
         }
         
         table = tempTable;
+    }
+    
+    public int size() {
+        return size;
     }
     
     

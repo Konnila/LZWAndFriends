@@ -17,6 +17,10 @@ import java.util.BitSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Engine that contains everything needed to Huffman encode and decode a file
+ * @author Stolichnaya
+ */
 public class HuffmanEngine implements ICompression {
     private HuffmanPriorityQueue pq;
     private int[] freqTable;
@@ -98,8 +102,6 @@ public class HuffmanEngine implements ICompression {
      */
     protected String[] populatePrefixTable(HuffmanNode node, String prefix) {
         if(node.isLeafNode()) {
-            //System.out.println("charINT: " + (int)node.getCharacter() + " = " + prefix);
-            //prefixTable soon redundant
             prefixTable[node.getCharacter()] = prefix;
             
             return prefixTable;
@@ -118,8 +120,8 @@ public class HuffmanEngine implements ICompression {
     
     
     /**
-     * First writes header data (Huffman tree)
-     * Writes the compressed data from file into a new compressed file
+     * First writes header data (Huffman tree and other data that the decoder needs)
+     * Then writes the uncompressed data from file into a new compressed file
      * Prefixes are added bit by bit, and then trailing bits added if necessary.
      * @param filename
      * @param prefixTable
@@ -141,14 +143,7 @@ public class HuffmanEngine implements ICompression {
                         }
                         
                         String prefix = prefixTable[c];
-                        //something is wrong, fix this
-                        if(prefix == null) {
-                            //this is probably faulty behavior. Check the code
-                            System.out.println("Prefix is null. Read: " + (char)c + "which has charcode: " + c);
-                            System.out.println("prefixTable[0] = " + prefixTable[0]);
-                            continue;
-                        }
-                        
+   
                         //add the characters in prefix string one by one
                         //and add them as bits
                         for(int i = 0; i < prefix.length(); i++) {
@@ -181,7 +176,7 @@ public class HuffmanEngine implements ICompression {
                     
                 }
             }
-            //remove these, just for testing
+            
             long percentage = (file.length() - compressedFile.length());
             double comparingPercentage = (percentage*100.0 /  file.length());
             
@@ -196,7 +191,14 @@ public class HuffmanEngine implements ICompression {
         }
     }
     
-    //return the bytes used as int
+    /**
+     * Writes headers - that are needed for decoding -  into the file stream
+     * @param s
+     * @param trailingBits
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
     protected int writeHeaders(FileOutputStream s, int trailingBits) throws FileNotFoundException, IOException {
         int count = 0;
         String countString = "";
@@ -221,7 +223,6 @@ public class HuffmanEngine implements ICompression {
         }
         
         long bytesFromBytesUsedString = ("" + bytesUsed + "\n").getBytes("UTF8").length;
-        
         long bytesFromTrailingBitsString =(""+ trailingBits+"\n").getBytes("UTF8").length;
         
         s.write(("" + trailingBits + "\n").getBytes("UTF8"));
@@ -230,6 +231,11 @@ public class HuffmanEngine implements ICompression {
         return (int)bytesUsed;
     }
     
+    /**
+     * Huffman decodes the given huffman compressed file. Creates a new
+     * file that consists of uncompressed data.
+     * @param file 
+     */
     @Override
     public void decode(File file) {
         freqTable = new int[256];
@@ -272,11 +278,8 @@ public class HuffmanEngine implements ICompression {
             prefixTable = populatePrefixTable(pq.peek(), "");
             int trailingBits = Integer.parseInt(reader.readLine());
             long compressedDataOffset = Long.parseLong( reader.readLine() );
-            System.out.println("compressed data begins at: " + compressedDataOffset);
             
             fis.skip(compressedDataOffset);
-            
-            System.out.println("compr data = " + (file.length() - compressedDataOffset));
             
             readCompressedData(writer, fis, trailingBits, (int)(file.length() - compressedDataOffset));
             
@@ -300,6 +303,11 @@ public class HuffmanEngine implements ICompression {
 
     }
     
+    /**
+     * gives the given characters bit representation as boolean array
+     * @param data
+     * @return 
+     */
     protected boolean[] decodeByte(char data) {
         boolean[] bits = new boolean[8];
 
@@ -344,8 +352,6 @@ public class HuffmanEngine implements ICompression {
         boolean[] barray = new boolean[8*dataLength+1];
         int arrayPointer = 0;
         
-        long a,b,c,d;
-        a = System.currentTimeMillis();
         while (true) {
             int data = fis.read();
             
@@ -363,12 +369,8 @@ public class HuffmanEngine implements ICompression {
                 }
             }
         }
-        b = System.currentTimeMillis();
-        
-        System.out.println("Some code 1 took "+(b-a)+"mil to execute. ("+((b-a)/1000)+" seconds)");
         
         for(int i = 0; i < numberOfTrailingBits-1; i++) {
-            //array.remove(array.size()-1);
             arrayPointer--;
         }
             
@@ -376,7 +378,6 @@ public class HuffmanEngine implements ICompression {
         HuffmanNode root = pq.peek();
         HuffmanNode traverser = pq.peek();
         
-        c = System.currentTimeMillis();
         
         for (int i = 0; i < arrayPointer; i++) {
             HuffmanNode r = traverser.getRightChild();
@@ -400,10 +401,6 @@ public class HuffmanEngine implements ICompression {
             }
 
         }
-        
-        d = System.currentTimeMillis();
-        
-        System.out.println("Some code 3 took "+(d-c)+"mil to execute. ("+((d-c)/1000)+" seconds)");
         
         writer.close();
         fis.close();
