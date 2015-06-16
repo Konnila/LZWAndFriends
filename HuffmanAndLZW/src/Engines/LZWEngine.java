@@ -1,5 +1,6 @@
 package Engines;
 
+import Data.IntToStringMap;
 import Interfaces.ICompression;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +19,7 @@ import java.util.logging.Logger;
 public class LZWEngine implements ICompression {
     private Map<String,Integer> prefixMap;
     private Map<Integer,String> intMap;
+    private IntToStringMap intToStrMap;
     
     private int mapSize;
     
@@ -26,15 +28,23 @@ public class LZWEngine implements ICompression {
      */
     public LZWEngine() {
         prefixMap = new HashMap<>();
+        intToStrMap = new IntToStringMap();
+        
         
         //add all characters to the prefixmap
-        for(int i = 0; i < 256; i++) 
+        for(int i = 0; i < 256; i++) {
             prefixMap.put("" + (char)i, i);
+            
+        }
+            
         
         // Build the intMap.
         intMap = new HashMap<>();
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < 256; i++) {
             intMap.put(i, "" + (char)i);
+            //intToStrMap.put(i, ""+(char)i);
+        }
+            
         
         mapSize = 256;
     }
