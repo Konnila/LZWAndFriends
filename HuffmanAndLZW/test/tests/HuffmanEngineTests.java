@@ -42,11 +42,11 @@ public class HuffmanEngineTests {
             if(file.exists())
                 file.delete();
             
-            File file2 = new File("./misc/testCompressed");
+            File file2 = new File("COMPRESSED" + file.getName());
             if(file2.exists())
                 file2.delete();
             
-            File file3 = new File("./misc/outPut.txt");
+            File file3 = new File("uncompressed_" + file2.getName());
             if(file3.exists())
                 file3.delete();
         }
@@ -66,7 +66,7 @@ public class HuffmanEngineTests {
             engine.encode(testFile);
             
             
-            File compressed = new File("./misc/testCompressed");
+            File compressed = new File("COMPRESSED" + testFile.getName());
             
             System.out.println(compressed.length());
             
@@ -74,7 +74,7 @@ public class HuffmanEngineTests {
             
             engine.decode(compressed);
             
-            File uncompressed = new File("./misc/outPut.txt");
+            File uncompressed = new File("uncompressed_"+compressed.getName());
             
             System.out.println(uncompressed.length());
             

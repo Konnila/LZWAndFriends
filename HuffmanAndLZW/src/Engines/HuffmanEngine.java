@@ -59,7 +59,7 @@ public class HuffmanEngine implements ICompression {
              printTree(pq.peek(), "");
              
              //write the compressed data into file
-             writeIntoFile("testCompressed", prefixTable, file);
+             writeIntoFile("COMPRESSED" + file.getName(), prefixTable, file);
              
         } 
         catch (IOException ex) {
@@ -129,7 +129,7 @@ public class HuffmanEngine implements ICompression {
      */
     public void writeIntoFile(String outputFilename, String[] prefixTable, File file) {
         try {
-            File compressedFile = new File("./misc/" + outputFilename);
+            File compressedFile = new File(outputFilename);
             try (FileReader reader = new FileReader(file)) {
                 try (FileOutputStream fileOutputStream = new FileOutputStream(compressedFile)) {
                     BitSet bs = new BitSet();
@@ -248,7 +248,7 @@ public class HuffmanEngine implements ICompression {
             r = new FileReader(file);
             BufferedReader reader = new BufferedReader(r);
 
-            File outputFile = new File("./misc/outPut.txt");
+            File outputFile = new File("uncompressed_"+file.getName());
             FileWriter writer = new FileWriter(outputFile);
             
             //this many lines after this line forms our prefixTable

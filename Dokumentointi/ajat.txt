@@ -1,0 +1,32 @@
+lirum.txt (933 bytes):
+
+H E : 15ms (16% pienempi)
+H D : 8ms
+L E : 260ms (19% pienempi)
+L D : 9ms
+
+big.txt (25 617 KB):
+
+H E : 3360ms or 3s
+H D : 43114ms or 43s
+
+medium.txt (6,51 KB):
+
+H E : 40ms (39% pienempi)
+H D : 41ms
+L E : 301ms (51% pienempi)
+L D : 29ms 
+
+
+
+
+
+
+
+H E = Huffman Encode (kompressoitu tiedosto x% pienempi)
+H D = Huffman Decode
+L E = LZW Encode (kompressoitu tiedosto x% pienempi)
+L D = LZW Decode
+
+
+

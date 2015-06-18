@@ -47,7 +47,7 @@ public class LZWEngine implements ICompression {
     public void decode(File file) {
         try {
             FileInputStream fis = new FileInputStream(file);
-            FileOutputStream fos = new FileOutputStream(new File("./misc/outPut.txt"));
+            FileOutputStream fos = new FileOutputStream(new File("lzwuncompressed_"+file.getName()));
             IntegerList listOfInputs = new IntegerList();
             
             //read two inputs at a time = 24 bits = 3 bytes
@@ -128,7 +128,7 @@ public class LZWEngine implements ICompression {
             
             reader.close();
 
-            writeIntoFile("lzwCompressed", result);
+            writeIntoFile("LZWCOMPRESSED" + file.getName(), result);
             
         } catch (FileNotFoundException ex) {
             Logger.getLogger(LZWEngine.class.getName()).log(Level.SEVERE, null, ex);
@@ -148,7 +148,7 @@ public class LZWEngine implements ICompression {
      * @throws IOException 
      */
     public void writeIntoFile(String filename, List<Integer> values) throws FileNotFoundException, IOException {
-        File file = new File("./misc/" + filename);
+        File file = new File(filename);
         try (FileOutputStream fis = new FileOutputStream(file)) {
             BitSet bs = new BitSet();
             int bitIndex = -1;
